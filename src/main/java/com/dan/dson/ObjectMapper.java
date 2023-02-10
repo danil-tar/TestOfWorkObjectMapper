@@ -7,19 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class ObjectMapper {
-    private String jsonString;
 
-    public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
-        Peaple peaple = new Peaple();
-        peaple.name = "Dan";
-        peaple.subName = "Tupolev";
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.createJson(peaple);
-        System.out.println(json);
-    }
-
-    public String createJson(Object a) throws InvocationTargetException, IllegalAccessException {
+    public String createJson(Object a) throws SerializationException {
 
         Class<?> aClass = a.getClass();
         Method[] declaredMethods = aClass.getDeclaredMethods();
@@ -29,7 +18,12 @@ public class ObjectMapper {
                 String key = method.getName().substring(3);
 
                 method.setAccessible(true);
-                String value = method.invoke(a).toString();
+                String value = null;
+                try {
+                    value = method.invoke(a).toString();
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                  throw new SerializationException(e);
+                }
 
                 map.put(key, value);
             }
@@ -45,34 +39,12 @@ public class ObjectMapper {
         if (stringBuilder.length() > 2) {
             stringBuilder.deleteCharAt(stringBuilder.length() - 2);
             stringBuilder.append("}");
-            jsonString = stringBuilder.toString();
+           return stringBuilder.toString();
         }else {
             stringBuilder.append("}");
-            jsonString = stringBuilder.toString();
-        }
-
-        return jsonString;
-    }
-
-    public static class Peaple {
-        String name;
-        String subName;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getSubName() {
-            return subName;
-        }
-
-        public void setSubName(String substring) {
-            this.subName = substring;
+            return  stringBuilder.toString();
         }
     }
+
 }
 
